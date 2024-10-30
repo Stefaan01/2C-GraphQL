@@ -1,38 +1,52 @@
-const users = [];
+require('dotenv').config();
+const { Pool } = require('pg');
 
-const getUsers = () => {
-    return users;
+const pool = new Pool({
+    user: process.env.DB_USER,
+    host: process.env.DB_HOST,
+    database: process.env.DB_NAME,
+    password: process.env.DB_PASSWORD,
+    port: process.env.DB_PORT,
+});
+
+const getUsers = async () => {
+    const result = await pool.query('SELECT * FROM users');
+    return result.rows;
 };
 
-const addUser = (name, email) => {
-    const newUser = { id: users.length + 1, name, email };
-    users.push(newUser);
-    return newUser;
+const addUser = async (name, email) => {
+    const result = await pool.query(
+        'INSERT INTO users (name, email) VALUES ($1, $2) RETURNING *',
+        [name, email]
+    );
+    return result.rows[0];
 };
 
-const deleteUser = (name) => {
-    const index = users.findIndex(user => user.name === name);
-    if(index === -1) {
+const deleteUser = async (name) => {
+    const result = await pool.query(
+        'DELETE FROM users WHERE name = $1 RETURNING *',
+        [name]
+    );
+    if (result.rows.length === 0) {
         throw new Error('User not found');
     }
-    const deletedUser = users[index];
-    users.splice(index, 1);
-    return deletedUser;
+    return result.rows[0];
 };
 
-const filterUsers = (parameter, isName) => {
-    const lowerCaseParameter = parameter ? parameter.toLowerCase() : '';
+const filterUsers = async (parameter, isName) => {
+    let query;
+    let values;
 
-    return users.filter(user => {
-        if(isName) {
-            const nameMatch = lowerCaseParameter ? user.name.toLowerCase().includes(lowerCaseParameter) : true;
-            return nameMatch;
-        }
-        else {
-            const emailMatch = lowerCaseParameter ? user.email.toLowerCase().includes(lowerCaseParameter) : true;
-            return emailMatch;
-        }
-    })
+    if (isName) {
+        query = 'SELECT * FROM users WHERE LOWER(name) LIKE LOWER($1)';
+    } else {
+        query = 'SELECT * FROM users WHERE LOWER(email) LIKE LOWER($1)';
+    }
+
+    values = [`%${parameter}%`];
+
+    const result = await pool.query(query, values);
+    return result.rows;
 }
 
 module.exports = { getUsers, addUser, deleteUser, filterUsers };
