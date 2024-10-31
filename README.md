@@ -7,4 +7,8 @@
 2. Otvorite terminal u Visual Studio Code-u
 3. Unesite: node index.js
 4. Idite na adresu: "http://localhost:4000/" (Apollo Server Playground)
-5. Istestirajte metode preko Apollo Server Playground-a: getUsers, addUser(name, email), deleteUser(name), filterUsers(parameter, isName)
+5. Istestirajte metode preko Apollo Server Playground-a: 
+    - getUsers
+    - addUser(name, email)
+    - deleteUser(name)
+    - filterUsers(parameter, isName)
